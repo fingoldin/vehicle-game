@@ -10,6 +10,8 @@ uniform vec3 camPos;
 
 uniform vec3 ambience;
 
+uniform vec3 shadowColor;
+
 struct Material
 {
 	vec3 ambient;

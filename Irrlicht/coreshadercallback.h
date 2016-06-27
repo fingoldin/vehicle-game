@@ -43,7 +43,8 @@ public:
 		irr::video::SColorf ambience = smgr->getAmbientLight();
 		services->setPixelShaderConstant("ambience", reinterpret_cast<irr::f32*>(&ambience), 3);
 		
-		irr::video::SColorf 
+		irr::video::SColorf shadowColor = smgr->getShadowColor();
+		services->setPixelShaderConstant("shadowColor", reinterpret_cast<irr::f32*>(&shadowColor), 3);
 		
 		irr::video::SColorf ambient(this->material->AmbientColor);
 		irr::video::SColorf diffuse(this->material->DiffuseColor);
@@ -103,9 +104,11 @@ public:
 		services->setPixelShaderConstant("numslights", &slights, 1);
 	}
 	
-	CoreShaderCallback(irr::IrrlichtDevice * dev) {
-		this->device = dev;
+	CoreShaderCallback(irr::IrrlichtDevice * dev) : device(dev) {
+		this->device->grab();
 	}
+	
+	~CoreShaderCallback() { this->device->drop(); }
 
 private:
 	
