@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+#include <Irrlicht/irrlicht.h>
+
 #include <string>
 
 
@@ -40,6 +42,8 @@ public:
 		
 		irr::video::SColorf ambience = smgr->getAmbientLight();
 		services->setPixelShaderConstant("ambience", reinterpret_cast<irr::f32*>(&ambience), 3);
+		
+		irr::video::SColorf 
 		
 		irr::video::SColorf ambient(this->material->AmbientColor);
 		irr::video::SColorf diffuse(this->material->DiffuseColor);

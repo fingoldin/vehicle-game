@@ -1,7 +1,7 @@
 #ifndef __VEHICLE_H_INCLUDED__
 #define __VEHICLE_H_INCLUDED__
 
-#include <irrlicht/irrlicht.h>
+#include <Irrlicht/irrlicht.h>
 
 #include <cstdio>
 
@@ -24,14 +24,6 @@ public:
 		
 		this->rNode->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
 		this->rNode->setMaterialFlag(irr::video::EMF_ANTI_ALIASING, true);
-		
-		irr::video::SMaterial mat = this->rNode->getMaterial(0);
-		mat.AmbientColor = irr::video::SColor(255, 40, 40, 40);
-		mat.DiffuseColor = irr::video::SColor(255, 40, 40, 200);
-		mat.SpecularColor = irr::video::SColor(255, 150, 150, 150);
-		mat.Shininess = 128.0f;
-		
-		printf("%d, %d, %d\n", this->rNode->getMaterial(0).AmbientColor.getRed(), this->rNode->getMaterial(0).AmbientColor.getGreen(), this->rNode->getMaterial(0).AmbientColor.getBlue());
 	}
 	
 	~Vehicle(void)

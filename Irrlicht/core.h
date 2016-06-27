@@ -2,7 +2,7 @@
 #define __CORE_H_INCLUDED__
 
 
-#include <irrlicht/irrlicht.h>
+#include <Irrlicht/irrlicht.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -80,12 +80,7 @@ void Core::begin(const char * winName)
 	
 	this->vehicle = new Vehicle(this->device, this->shader);
 	
-	//printf("%d\n", node1->getJointCount());
-	
-	//this->scene_manager->addMeshSceneNode(this->scene_manager->getGeometryCreator()->createPlaneMesh(irr::core::dimension2d<irr::f32>(100, 100)));
-	
-	//node1->addShadowVolumeSceneNode();
-    //this->scene_manager->setShadowColor(irr::video::SColor(150,0,0,0));
+	this->scene_manager->setShadowColor(irr::video::SColor(150,0,0,0));
 }
 
 void Core::end(void)

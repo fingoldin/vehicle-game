@@ -1,4 +1,4 @@
-#version 130 core
+#version 130
 
 varying vec3 worldPos;
 varying vec3 norm;
@@ -9,6 +9,8 @@ uniform mat4 normMat;
 uniform vec3 camPos;
 
 uniform vec3 ambience;
+
+uniform vec3 shadowColor;
 
 struct Material
 {
