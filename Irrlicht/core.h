@@ -143,6 +143,12 @@ void Core::render(void)
 
 void Core::generate_shadowMaps(void)
 {
+	irr::core::array<ISceneNode*> shadowCasters;
+	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_ANY, shadowCasters);
+	
+	for(int i = 0; i < shadowCasters.size(); i++)
+		shadowCasters[i]->setMaterialType((irr::video::E_MATERIAL_TYPE)this->zshader);
+	
 	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS; i++)
 	{
 		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
