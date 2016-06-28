@@ -16,8 +16,6 @@ public:
 		services->setVertexShaderConstant("view", driver->getTransform(irr::video::ETS_VIEW).pointer(), 16);
 		services->setVertexShaderConstant("projection", driver->getTransform(irr::video::ETS_PROJECTION).pointer(), 16);	
 	}
-        
-        virtual void setLight(irr::scene::ILightSceneNode * lNode) { this->lightNode = lNode; }
 	
 	CoreZShaderCallback(irr::IrrlichtDevice * dev) : device(dev) {
 		this->device->grab();
@@ -28,7 +26,6 @@ public:
 private:
 	
 	irr::IrrlichtDevice * device;
-        irr::scene::ILightSceneNode * lightNode
 };
 
 
