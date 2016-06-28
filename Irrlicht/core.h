@@ -145,12 +145,17 @@ void Core::generate_shadowMaps(void)
 	irr::core::array<irr::scene::ILightSceneNode*> lights;
 	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_LIGHT, lights);
 	
+        irr::scene::ICameraSceneNode * lightCam = this->scene_manager->addCameraSceneNode();
+        
 	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS, i < lights.size(); i++)
 	{
 		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
 		
 		irr::video::SLight light = ((irr::scene::ILightSceneNode*)lights[i])->getLightData();
-		
+                
+                lightCam
+                
+		this->scene_manager->drawAll();
 	}
 	
 	driver->setRenderTarget(0, true, true, 0);
