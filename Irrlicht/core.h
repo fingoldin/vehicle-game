@@ -144,10 +144,13 @@ void Core::render(void)
 void Core::generate_shadowMaps(void)
 {
 	irr::core::array<ISceneNode*> shadowCasters;
+	irr::core::array<irr:s32> previousTypes;
 	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_ANY, shadowCasters);
 	
-	for(int i = 0; i < shadowCasters.size(); i++)
+	for(int i = 0; i < shadowCasters.size(); i++) {
+		previousTypes[i].push_back(shadowCasters[i]->getMaterialType());
 		shadowCasters[i]->setMaterialType((irr::video::E_MATERIAL_TYPE)this->zshader);
+	}
 	
 	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS; i++)
 	{
@@ -181,6 +184,9 @@ void Core::generate_shadowMaps(void)
                 
 		this->scene_manager->drawAll();
 	}
+	
+	for(int i = 0; i < shadowCasters.size(); i++)
+		shadowCasters[i]->setMaterialType((irr::video::E_MATERIAL_TYPE)previousTypes[i]);
 	
 	this->scene_manager->setActiveCamera(this->camera);
 	
