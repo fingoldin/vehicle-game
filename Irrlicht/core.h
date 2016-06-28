@@ -67,6 +67,7 @@ private:
 	CoreEventReciever * event_reciever;
 	
 	irr::scene::ICameraSceneNode * camera;
+	irr::scene::ICameraSceneNode * zcamera;
 	
 	irr::s32 shader;
 	irr::s32 zshader;
@@ -74,8 +75,6 @@ private:
 	irr::io::path fshader_file;
 	irr::io::path vzshader_file;
 	irr::io::path fzshader_file;
-	
-	CoreZShaderCallback * zshader_callback;
 	
 	irr::core::array<irr::video::ITexture*> shadowMaps;
 };
@@ -103,8 +102,6 @@ void Core::end(void)
 		this->vehicle->drop();
 	if(this->device)
 		this->device->drop();
-	if(this->zshader_callback)
-		this->zshader_callback->drop();
 }
 
 bool Core::run(void)
@@ -150,11 +147,36 @@ void Core::generate_shadowMaps(void)
 	{
 		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
 		
-		irr::scene::ILightSceneNode * light = this->scene_manager->getSceneNodeFromName(this->shadowMaps[i]->getName());
-		this->zshader_callback->setLight(light);
+		irr::video::SLight light = this->scene_manager->getSceneNodeFromName(this->shadowMaps[i]->getName())->getLightData();
+		
+		//irr::core::CMatrix4<irr::f32> viewmat;
+		irr::core::CMatrix4<irr::f32> projmat;
+		
+		switch(light.Type)
+		{
+		case irr::video::ELT_DIRECTIONAL:
+			projmat = projmat.buildProjectionMatrixOrthoLH(100.0f, 100.0f, 1.0f, 100.0f);
+			/*viewmat = viewmat.buildCameraLookAtMatrixLH(irr::core::vector3df(-light.Direction * 20.0f),
+								    irr::core::vector3df(0.0f, 0.0f, 0.0f)
+								    irr::core::vector3df(0.0f, 1.0f, 0.0f))*/
+			this->zcamera->setPosition(-light.Direction * 20.0f);
+			this->zcamera->setTarget(irr::core::vector3df(0.0f, 0.0f, 0.0f));
+			this->zcamera->setProjectionMatrix(projmat, true)
+			break;
+		case irr::video::ELT_POINT:
+			break;
+		case irr::video::ELT_SPOT:
+			break;
+		default:
+			break;
+		}
+		
+		this->scene_manager->setActiveCamera(this->zcamera);
                 
 		this->scene_manager->drawAll();
 	}
+	
+	this->scene_manager->setActiveCamera(this->camera);
 	
 	driver->setRenderTarget(0, true, true, 0);
 }
@@ -227,7 +249,7 @@ void Core::load_shaders(void)
 	this->zshader = 0;
 	
 	CoreShaderCallback * scallback = new CoreShaderCallback(this->device);
-	this->zshader_callback = new CoreZShaderCallback(this->device);
+	CoreZShaderCallback * zcallback = new CoreZShaderCallback(this->device);
 	
 	this->shader = gpu->addHighLevelShaderMaterialFromFiles(
 			vshader_file, "main", irr::video::EVST_VS_1_1,
@@ -237,7 +259,7 @@ void Core::load_shaders(void)
 	this->zshader = gpu->addHighLevelShaderMaterialFromFiles(
 			vzshader_file, "main", irr::video::EVST_VS_1_1,
 			fzshader_file, "main", irr::video::EPST_PS_1_1,
-			this->zshader_callback, irr::video::EMT_SOLID);
+			zcallback, irr::video::EMT_SOLID);
 	
 	if(this->shader < 0 || this->zshader < 0) {
 		std::printf("Could not add shaders!\n");
@@ -245,6 +267,7 @@ void Core::load_shaders(void)
 	}
 	
 	scallback->drop();
+	zcallback->drop();
 }
 
 void Core::load_lights(void)
@@ -254,6 +277,7 @@ void Core::load_lights(void)
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
 		light0->setLightType(irr::video::ELT_DIRECTIONAL);
+		light0->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
 		light0->setName("light0");
 		
 		this->add_shadowMap(light0->getName());
@@ -270,8 +294,10 @@ void Core::load_lights(void)
 
 void Core::load_cameras(void)
 {
+	this->zcamera = this->scene_manager->addCameraSceneNode();
+	
 	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100.0f, 0.02f);
-	if(camera) {
+	if(this->camera) {
 		this->camera->setFarValue(50000.0f);
 		this->camera->setNearValue(0.5f);
 		this->camera->setFOV(1.0f);
