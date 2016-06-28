@@ -147,7 +147,10 @@ void Core::generate_shadowMaps(void)
 	
 	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS, i < lights.size(); i++)
 	{
-		driver->setRenderTarget(this->shadowMaps[i]
+		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
+	}
+	
+	driver->setRenderTarget(0, true, true, 0);
 }
 
 void Core::init_device(const char * winName)
