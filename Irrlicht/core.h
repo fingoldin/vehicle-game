@@ -75,6 +75,8 @@ private:
 	irr::io::path vzshader_file;
 	irr::io::path fzshader_file;
 	
+	CoreZShaderCallback * zshader_callback;
+	
 	irr::core::array<irr::video::ITexture*> shadowMaps;
 };
 
@@ -101,6 +103,8 @@ void Core::end(void)
 		this->vehicle->drop();
 	if(this->device)
 		this->device->drop();
+	if(this->zshader_callback)
+		this->zshader_callback->drop();
 }
 
 bool Core::run(void)
@@ -142,18 +146,12 @@ void Core::render(void)
 
 void Core::generate_shadowMaps(void)
 {
-	irr::core::array<irr::scene::ILightSceneNode*> lights;
-	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_LIGHT, lights);
-	
-        irr::scene::ICameraSceneNode * lightCam = this->scene_manager->addCameraSceneNode();
-        
-	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS, i < lights.size(); i++)
+	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS; i++)
 	{
 		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
 		
-		irr::video::SLight light = ((irr::scene::ILightSceneNode*)lights[i])->getLightData();
-                
-                lightCam
+		irr::scene::ILightSceneNode * light = this->scene_manager->getSceneNodeFromName(this->shadowMaps[i]->getName());
+		this->zshader_callback->setLight(light);
                 
 		this->scene_manager->drawAll();
 	}
@@ -229,7 +227,7 @@ void Core::load_shaders(void)
 	this->zshader = 0;
 	
 	CoreShaderCallback * scallback = new CoreShaderCallback(this->device);
-	CoreZShaderCallback * zcallback = new CoreZShaderCallback(this->device);
+	this->zshader_callback = new CoreZShaderCallback(this->device);
 	
 	this->shader = gpu->addHighLevelShaderMaterialFromFiles(
 			vshader_file, "main", irr::video::EVST_VS_1_1,
@@ -239,7 +237,7 @@ void Core::load_shaders(void)
 	this->zshader = gpu->addHighLevelShaderMaterialFromFiles(
 			vzshader_file, "main", irr::video::EVST_VS_1_1,
 			fzshader_file, "main", irr::video::EPST_PS_1_1,
-			zcallback, irr::video::EMT_SOLID);
+			this->zshader_callback, irr::video::EMT_SOLID);
 	
 	if(this->shader < 0 || this->zshader < 0) {
 		std::printf("Could not add shaders!\n");
@@ -247,7 +245,6 @@ void Core::load_shaders(void)
 	}
 	
 	scallback->drop();
-	zcallback->drop();
 }
 
 void Core::load_lights(void)
@@ -257,8 +254,9 @@ void Core::load_lights(void)
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
 		light0->setLightType(irr::video::ELT_DIRECTIONAL);
+		light0->setName("light0");
 		
-		this->add_shadowMap("light0");
+		this->add_shadowMap(light0->getName());
 		
 		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
 		if(lightAnimator) {
