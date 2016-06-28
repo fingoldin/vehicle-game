@@ -148,6 +148,9 @@ void Core::generate_shadowMaps(void)
 	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS, i < lights.size(); i++)
 	{
 		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
+		
+		irr::video::SLight light = ((irr::scene::ILightSceneNode*)lights[i])->getLightData();
+		
 	}
 	
 	driver->setRenderTarget(0, true, true, 0);
