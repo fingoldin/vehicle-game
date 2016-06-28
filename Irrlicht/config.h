@@ -18,10 +18,14 @@
 
 #define CORE_WINDOW_HEIGHT  600
 
-#define CORE_STENCIL_BUFFER  0
+#define CORE_STENCIL_BUFFER  false
 
 #define CORE_FULLSCREEN  0
 
 #define CORE_VSYNC  0
+
+#define MAX_SHADOW_MAPS  4
+
+#define SHADOW_MAP_SIZE  512
 
 #endif

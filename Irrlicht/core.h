@@ -50,6 +50,10 @@ private:
 	
 	void load_cameras(void);
 	
+	void add_shadowMap(const char * name);
+	
+	void generate_shadowMaps(void);
+	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
 	Vehicle * vehicle;
@@ -70,6 +74,8 @@ private:
 	irr::io::path fshader_file;
 	irr::io::path vzshader_file;
 	irr::io::path fzshader_file;
+	
+	irr::core::array<irr::video::ITexture*> shadowMaps;
 };
 
 void Core::begin(const char * winName)
@@ -125,11 +131,23 @@ void Core::render(void)
 {
 	this->driver->beginScene(true, true, irr::video::SColor(255, 5, 5, 250));
 	
+	this->generate_shadowMaps();
+	
 	this->scene_manager->drawAll();
 	
 	this->gui_env->drawAll();
 	
 	this->driver->endScene();
+}
+
+void Core::generate_shadowMaps(void)
+{
+	irr::core::array<irr::scene::ILightSceneNode*> lights;
+	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_LIGHT, lights);
+	
+	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS, i < lights.size(); i++)
+	{
+		driver->setRenderTarget(this->shadowMaps[i]
 }
 
 void Core::init_device(const char * winName)
@@ -174,6 +192,7 @@ void Core::load_shaders(void)
         	this->device->getLogger()->log("WARNING: Pixel shaders disabled "\
            	 "because of missing driver/hardware support.");
         	fshader_file = "";
+		fzshader_file = "";
         }
 
         if (!this->driver->queryFeature(irr::video::EVDF_VERTEX_SHADER_1_1) &&
@@ -182,7 +201,16 @@ void Core::load_shaders(void)
         	this->device->getLogger()->log("WARNING: Vertex shaders disabled "\
            	 "because of missing driver/hardware support.");
         	vshader_file = "";
+		vzshader_file = "";
         }
+	
+	if (!this->driver->queryFeature(irr::video::EVDF_RENDER_TO_TARGET))
+	{
+		this->device->getLogger()->log("WARNING: Render to texture disabled "\
+		 "because of missing driver/harware support.");
+		fzshader_file = "";
+		vzshader_file = "";
+	}
 	
 	irr::video::IGPUProgrammingServices * gpu = this->driver->getGPUProgrammingServices();
 	
@@ -213,16 +241,19 @@ void Core::load_shaders(void)
 
 void Core::load_lights(void)
 {
-	irr::scene::ILightSceneNode * light1 = this->scene_manager->addLightSceneNode(0, irr::core::vector3df(150, 150, 150), irr::video::SColorf(1.0f, 1.0f, 1.0f), 1000.0f);
-	if(light1) {
-		light1->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
-		light1->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
+	irr::scene::ILightSceneNode * light0 = this->scene_manager->addLightSceneNode(0, irr::core::vector3df(150, 150, 150), irr::video::SColorf(1.0f, 1.0f, 1.0f), 1000.0f);
+	if(light0) {
+		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
+		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
+		light0->setLightType(irr::video::ELT_DIRECTIONAL);
 		
-		irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
+		this->add_shadowMap("light0");
+		
+		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
 		if(lightAnimator) {
-			light1->addAnimator(lightAnimator);
+			light0->addAnimator(lightAnimator);
 			lightAnimator->drop();
-		}
+		}*/
 	}
 	
 	//this->scene_manager->setAmbientLight(irr::video::SColor(200, 20, 20, 20));
@@ -238,6 +269,15 @@ void Core::load_cameras(void)
 	}
 	
 	this->device->getCursorControl()->setVisible(false);
+}
+
+irr::video::ITexture * Core::add_shadowMap(const char * name)
+{
+	irr::video::ITexture * RTT = this->driver->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE), 
+										name, irr::video::ECF_G32R32F);
+	this->shadowMaps.push_back(RTT);
+	
+	return RTT;
 }
 
 irr::scene::IAnimatedMesh * Core::getMeshIrrlicht(const irr::io::path& filename)
