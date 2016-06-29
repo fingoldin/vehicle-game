@@ -1,7 +1,7 @@
 #ifndef __VEHICLE_H_INCLUDED__
 #define __VEHICLE_H_INCLUDED__
 
-#include <Irrlicht/irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 #include <cstdio>
 
@@ -9,7 +9,7 @@ class Vehicle : public irr::IReferenceCounted
 {
 public:
 	
-	Vehicle(EffectHandler * effhand, irr::s32 shad) : ehandler(effhand), device(effhand->getDevice()), smgr(effhand->getDevice()->getSceneManager()), shader(shad)
+	Vehicle(EffectHandler * effhand, irr::IrrlichtDevice * dev, irr::s32 shad) : ehandler(effhand), device(dev), smgr(dev->getSceneManager()), shader(shad)
 	{
 		this->device->grab();
 		
@@ -23,9 +23,10 @@ public:
 		}
 		
 		this->rNode->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
-		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, true);
+		//this->rNode->setScale(irr::core::vector3df(0.1f, 0.1f, 0.1f));
 		
-		this->ehandler->addShadowToNode(this->rNode, ESM_BOTH);
+		this->ehandler->addShadowToNode(this->rNode, EFT_16PCF, ESM_BOTH);
 	}
 	
 	~Vehicle(void)

@@ -1,7 +1,7 @@
 #ifndef H_C_SHADER_PP
 #define H_C_SHADER_PP
 
-#include <irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 class CShaderPreprocessor
 {

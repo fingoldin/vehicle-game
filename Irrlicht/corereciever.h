@@ -1,7 +1,7 @@
 #ifndef __CORE_RECEIVER_H_INCLUDED__
 #define __CORE_RECEIVER_H_INCLUDED__
 
-#include <Irrlicht/irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 
 class CoreEventReciever : public irr::IEventReceiver, public irr::IReferenceCounted

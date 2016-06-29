@@ -2,7 +2,7 @@
 #define __CORE_H_INCLUDED__
 
 
-#include <Irrlicht/irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -51,6 +51,8 @@ private:
 	
 	void load_cameras(void);
 	
+	void add_shadowLight_from_node(irr::u32 dimen, irr::scene::ILightSceneNode * node);
+	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
 	Vehicle * vehicle;
@@ -82,9 +84,14 @@ void Core::begin(const char * winName)
 	
 	this->load_cameras();
 	
-	this->vehicle = new Vehicle(this->device, this->zshader);
+	this->vehicle = new Vehicle(this->effect_handler, this->device, this->shader);
 	
 	this->scene_manager->setShadowColor(irr::video::SColor(150,0,0,0));
+	
+	const irr::scene::IGeometryCreator * creator = this->scene_manager->getGeometryCreator();
+	irr::scene::ISceneNode * plane = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(10.0f, 10.0f)));
+	
+	this->effect_handler->addShadowToNode(plane, EFT_16PCF, ESM_RECEIVE);
 }
 
 void Core::end(void)
@@ -95,8 +102,8 @@ void Core::end(void)
 		this->vehicle->drop();
 	if(this->device)
 		this->device->drop();
-	if(this->event_handler)
-		delete this->event_handler;
+	if(this->effect_handler)
+		delete this->effect_handler;
 }
 
 bool Core::run(void)
@@ -127,9 +134,7 @@ void Core::render(void)
 {
 	this->driver->beginScene(true, true, irr::video::SColor(255, 5, 5, 250));
 	
-	this->generate_shadowMaps();
-	
-	this->scene_manager->drawAll();
+	this->effect_handler->update();
 	
 	this->gui_env->drawAll();
 	
@@ -164,7 +169,8 @@ void Core::init_device(const char * winName)
 	
 	this->device->setEventReceiver(this->event_reciever);
 	
-	this->event_handler = new EffectHandler(this->device, this->driver->getScreenSize(), false, true);
+	this->effect_handler = new EffectHandler(this->device, this->driver->getScreenSize(), true, true);
+	this->effect_handler->setAmbientColor(irr::video::SColor(255, 10, 10, 10));
 }
 
 void Core::load_shaders(void)
@@ -223,6 +229,9 @@ void Core::load_lights(void)
 		light0->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
 		light0->setName("light0");
 		
+		this->effect_handler->addShadowLight(SShadowLight(1024, irr::core::vector3df(10, 10, 10), irr::core::vector3df(0, 0, 0),
+						     irr::video::SColor(255, 255, 255, 255), 0.1f, 20.0f, 45.0f * irr::core::DEGTORAD));
+		
 		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
 		if(lightAnimator) {
 			light0->addAnimator(lightAnimator);
@@ -233,10 +242,13 @@ void Core::load_lights(void)
 	//this->scene_manager->setAmbientLight(irr::video::SColor(200, 20, 20, 20));
 }
 
-void Core::load_cameras(void)
+void Core::add_shadowLight_from_node(irr::u32 dimen, irr::scene::ILightSceneNode * node)
 {
-	this->zcamera = this->scene_manager->addCameraSceneNode();
 	
+}
+
+void Core::load_cameras(void)
+{	
 	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100.0f, 0.02f);
 	if(this->camera) {
 		this->camera->setFarValue(50000.0f);

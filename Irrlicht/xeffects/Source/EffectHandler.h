@@ -1,7 +1,7 @@
 #ifndef H_XEFFECTS_EFFECT_HANDLER
 #define H_XEFFECTS_EFFECT_HANDLER
 
-#include <irrlicht.h>
+#include <irrlicht/irrlicht.h>
 #include "CShaderPre.h"
 #include "CScreenQuad.h"
 

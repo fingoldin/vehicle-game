@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#include <Irrlicht/irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 #include <string>
 

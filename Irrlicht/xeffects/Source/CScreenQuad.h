@@ -4,7 +4,7 @@
 // Based on "CBaseFilter" by ItIsFree.
 // Original thread: http://irrlicht.sourceforge.net/phpBB2/viewtopic.php?t=9857
 
-#include <irrlicht.h>
+#include <irrlicht/irrlicht.h>
 
 class CScreenQuad
 {
