@@ -9,7 +9,7 @@ class Vehicle : public irr::IReferenceCounted
 {
 public:
 	
-	Vehicle(irr::IrrlichtDevice * dev, irr::s32 shad) : device(dev), smgr(dev->getSceneManager()), shader(shad)
+	Vehicle(EffectHandler * effhand, irr::s32 shad) : ehandler(effhand), device(effhand->getDevice()), smgr(effhand->getDevice()->getSceneManager()), shader(shad)
 	{
 		this->device->grab();
 		
@@ -23,7 +23,9 @@ public:
 		}
 		
 		this->rNode->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
-		this->rNode->setMaterialFlag(irr::video::EMF_ANTI_ALIASING, true);
+		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+		
+		this->ehandler->addShadowToNode(this->rNode, ESM_BOTH);
 	}
 	
 	~Vehicle(void)
@@ -33,6 +35,7 @@ public:
 	
 private:
 	
+	EffectHandler * ehandler;
 	irr::IrrlichtDevice * device;
 	irr::scene::ISceneManager * smgr;
 	irr::scene::IAnimatedMesh * mesh;

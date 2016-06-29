@@ -11,7 +11,8 @@
 
 #include "corereciever.h"
 #include "coreshadercallback.h"
-#include "corezshadercallback.h"
+
+#include "xeffects/Source/XEffects.h"
 
 #include "config.h"
 
@@ -62,6 +63,8 @@ private:
 	irr::gui::IGUIEnvironment * gui_env;
 	CoreEventReciever * event_reciever;
 	
+	EffectHandler * effect_handler;
+	
 	irr::scene::ICameraSceneNode * camera;
 	
 	irr::s32 shader;
@@ -92,6 +95,8 @@ void Core::end(void)
 		this->vehicle->drop();
 	if(this->device)
 		this->device->drop();
+	if(this->event_handler)
+		delete this->event_handler;
 }
 
 bool Core::run(void)
@@ -158,6 +163,8 @@ void Core::init_device(const char * winName)
 	this->event_reciever = new CoreEventReciever(this->device);
 	
 	this->device->setEventReceiver(this->event_reciever);
+	
+	this->event_handler = new EffectHandler(this->device, this->driver->getScreenSize(), false, true);
 }
 
 void Core::load_shaders(void)
