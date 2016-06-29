@@ -225,8 +225,8 @@ void Core::load_lights(void)
 	if(light0) {
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
-		light0->setLightType(irr::video::ELT_DIRECTIONAL);
-		light0->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
+		//light0->setLightType(irr::video::ELT_DIRECTIONAL);
+		//light0->getLightData().Direction = irr::core::vector3df(1.0f, -1.0f, 1.0f);
 		light0->setName("light0");
 		
 		this->effect_handler->addShadowLight(SShadowLight(1024, irr::core::vector3df(10, 10, 10), irr::core::vector3df(0, 0, 0),
@@ -244,7 +244,21 @@ void Core::load_lights(void)
 
 void Core::add_shadowLight_from_node(irr::u32 dimen, irr::scene::ILightSceneNode * node)
 {
+	irr::video::SLight light = node->getLightData();
 	
+	switch(light.Type)
+	{
+	case irr::video::ELT_POINT:
+		for(int i = 0; i < 6; i++)
+		{
+			this->effect_handler->addShadowLight(SShadowLight(dimen, 
+		break;
+	case irr::video::ELT_SPOT:
+		
+		break;
+	default:
+		printf("Tried to create shadow node from invalid light type '%d'\n", light.Type);
+	}
 }
 
 void Core::load_cameras(void)

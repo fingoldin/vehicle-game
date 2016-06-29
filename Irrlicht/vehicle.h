@@ -24,7 +24,7 @@ public:
 		
 		this->rNode->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
 		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, true);
-		//this->rNode->setScale(irr::core::vector3df(0.1f, 0.1f, 0.1f));
+		this->rNode->setScale(irr::core::vector3df(0.1f, 0.1f, 0.1f));
 		
 		this->ehandler->addShadowToNode(this->rNode, EFT_16PCF, ESM_BOTH);
 	}
