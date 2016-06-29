@@ -50,10 +50,6 @@ private:
 	
 	void load_cameras(void);
 	
-	void add_shadowMap(const char * name);
-	
-	void generate_shadowMaps(void);
-	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
 	Vehicle * vehicle;
@@ -67,16 +63,10 @@ private:
 	CoreEventReciever * event_reciever;
 	
 	irr::scene::ICameraSceneNode * camera;
-	irr::scene::ICameraSceneNode * zcamera;
 	
 	irr::s32 shader;
-	irr::s32 zshader;
 	irr::io::path vshader_file;
 	irr::io::path fshader_file;
-	irr::io::path vzshader_file;
-	irr::io::path fzshader_file;
-	
-	irr::core::array<irr::video::ITexture*> shadowMaps;
 };
 
 void Core::begin(const char * winName)
@@ -141,58 +131,6 @@ void Core::render(void)
 	this->driver->endScene();
 }
 
-void Core::generate_shadowMaps(void)
-{
-	irr::core::array<ISceneNode*> shadowCasters;
-	irr::core::array<irr:s32> previousTypes;
-	this->scene_manager->getSceneNodesFromType(irr::scene::ESNT_ANY, shadowCasters);
-	
-	for(int i = 0; i < shadowCasters.size(); i++) {
-		previousTypes[i].push_back(shadowCasters[i]->getMaterialType());
-		shadowCasters[i]->setMaterialType((irr::video::E_MATERIAL_TYPE)this->zshader);
-	}
-	
-	for(int i = 0; i < this->shadowMaps.size(), i < MAX_SHADOW_MAPS; i++)
-	{
-		driver->setRenderTarget(this->shadowMaps[i], true, true, irr::video::SColor(255, 0, 0, 0));
-		
-		irr::video::SLight light = this->scene_manager->getSceneNodeFromName(this->shadowMaps[i]->getName())->getLightData();
-		
-		//irr::core::CMatrix4<irr::f32> viewmat;
-		irr::core::CMatrix4<irr::f32> projmat;
-		
-		switch(light.Type)
-		{
-		case irr::video::ELT_DIRECTIONAL:
-			projmat = projmat.buildProjectionMatrixOrthoLH(100.0f, 100.0f, 1.0f, 100.0f);
-			/*viewmat = viewmat.buildCameraLookAtMatrixLH(irr::core::vector3df(-light.Direction * 20.0f),
-								    irr::core::vector3df(0.0f, 0.0f, 0.0f)
-								    irr::core::vector3df(0.0f, 1.0f, 0.0f))*/
-			this->zcamera->setPosition(-light.Direction * 20.0f);
-			this->zcamera->setTarget(irr::core::vector3df(0.0f, 0.0f, 0.0f));
-			this->zcamera->setProjectionMatrix(projmat, true)
-			break;
-		case irr::video::ELT_POINT:
-			break;
-		case irr::video::ELT_SPOT:
-			break;
-		default:
-			break;
-		}
-		
-		this->scene_manager->setActiveCamera(this->zcamera);
-                
-		this->scene_manager->drawAll();
-	}
-	
-	for(int i = 0; i < shadowCasters.size(); i++)
-		shadowCasters[i]->setMaterialType((irr::video::E_MATERIAL_TYPE)previousTypes[i]);
-	
-	this->scene_manager->setActiveCamera(this->camera);
-	
-	driver->setRenderTarget(0, true, true, 0);
-}
-
 void Core::init_device(const char * winName)
 {
 	irr::SIrrlichtCreationParameters params;
@@ -226,8 +164,6 @@ void Core::load_shaders(void)
 {
 	this->vshader_file = "shader.vs";
 	this->fshader_file = "shader.frag";
-	this->vzshader_file = "zbuffer.vs";
-	this->fzshader_file = "zbuffer.frag";
 	
 	if (!this->driver->queryFeature(irr::video::EVDF_PIXEL_SHADER_1_1) &&
             !this->driver->queryFeature(irr::video::EVDF_ARB_FRAGMENT_PROGRAM_1))
@@ -235,7 +171,6 @@ void Core::load_shaders(void)
         	this->device->getLogger()->log("WARNING: Pixel shaders disabled "\
            	 "because of missing driver/hardware support.");
         	fshader_file = "";
-		fzshader_file = "";
         }
 
         if (!this->driver->queryFeature(irr::video::EVDF_VERTEX_SHADER_1_1) &&
@@ -244,42 +179,31 @@ void Core::load_shaders(void)
         	this->device->getLogger()->log("WARNING: Vertex shaders disabled "\
            	 "because of missing driver/hardware support.");
         	vshader_file = "";
-		vzshader_file = "";
         }
 	
 	if (!this->driver->queryFeature(irr::video::EVDF_RENDER_TO_TARGET))
 	{
 		this->device->getLogger()->log("WARNING: Render to texture disabled "\
 		 "because of missing driver/harware support.");
-		fzshader_file = "";
-		vzshader_file = "";
 	}
 	
 	irr::video::IGPUProgrammingServices * gpu = this->driver->getGPUProgrammingServices();
 	
 	this->shader = 0;
-	this->zshader = 0;
 	
 	CoreShaderCallback * scallback = new CoreShaderCallback(this->device);
-	CoreZShaderCallback * zcallback = new CoreZShaderCallback(this->device);
 	
 	this->shader = gpu->addHighLevelShaderMaterialFromFiles(
 			vshader_file, "main", irr::video::EVST_VS_1_1,
 			fshader_file, "main", irr::video::EPST_PS_1_1,
 			scallback, irr::video::EMT_SOLID);
 	
-	this->zshader = gpu->addHighLevelShaderMaterialFromFiles(
-			vzshader_file, "main", irr::video::EVST_VS_1_1,
-			fzshader_file, "main", irr::video::EPST_PS_1_1,
-			zcallback, irr::video::EMT_SOLID);
-	
-	if(this->shader < 0 || this->zshader < 0) {
-		std::printf("Could not add shaders!\n");
+	if(this->shader < 0) {
+		std::printf("Could not add shader!\n");
 		this->device->closeDevice();
 	}
 	
 	scallback->drop();
-	zcallback->drop();
 }
 
 void Core::load_lights(void)
@@ -291,8 +215,6 @@ void Core::load_lights(void)
 		light0->setLightType(irr::video::ELT_DIRECTIONAL);
 		light0->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
 		light0->setName("light0");
-		
-		this->add_shadowMap(light0->getName());
 		
 		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
 		if(lightAnimator) {
@@ -316,15 +238,6 @@ void Core::load_cameras(void)
 	}
 	
 	this->device->getCursorControl()->setVisible(false);
-}
-
-irr::video::ITexture * Core::add_shadowMap(const char * name)
-{
-	irr::video::ITexture * RTT = this->driver->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE), 
-										name, irr::video::ECF_G32R32F);
-	this->shadowMaps.push_back(RTT);
-	
-	return RTT;
 }
 
 irr::scene::IAnimatedMesh * Core::getMeshIrrlicht(const irr::io::path& filename)
