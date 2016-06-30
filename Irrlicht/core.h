@@ -9,10 +9,12 @@
 #include <string>
 #include <ctime>
 
+#include "xeffects/Source/XEffects.h"
+
 #include "corereciever.h"
 #include "coreshadercallback.h"
 
-#include "xeffects/Source/XEffects.h"
+#include "coreshadowlight.h"
 
 #include "config.h"
 
@@ -51,7 +53,8 @@ private:
 	
 	void load_cameras(void);
 	
-	void add_shadowLight_from_node(irr::u32 dimen, irr::scene::ILightSceneNode * node);
+	CShadowLightSceneNode *  addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
+			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id = -1);
 	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
@@ -221,16 +224,13 @@ void Core::load_shaders(void)
 
 void Core::load_lights(void)
 {
-	irr::scene::ILightSceneNode * light0 = this->scene_manager->addLightSceneNode(0, irr::core::vector3df(150, 150, 150), irr::video::SColorf(1.0f, 1.0f, 1.0f), 1000.0f);
+	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(150, 150, 150), irr::video::SColorf(1.0f, 1.0f, 1.0f), 0.1f, 100.0f);
 	if(light0) {
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
 		//light0->setLightType(irr::video::ELT_DIRECTIONAL);
 		//light0->getLightData().Direction = irr::core::vector3df(1.0f, -1.0f, 1.0f);
 		light0->setName("light0");
-		
-		this->effect_handler->addShadowLight(SShadowLight(1024, irr::core::vector3df(10, 10, 10), irr::core::vector3df(0, 0, 0),
-						     irr::video::SColor(255, 255, 255, 255), 0.1f, 20.0f, 45.0f * irr::core::DEGTORAD));
 		
 		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
 		if(lightAnimator) {
@@ -242,23 +242,17 @@ void Core::load_lights(void)
 	//this->scene_manager->setAmbientLight(irr::video::SColor(200, 20, 20, 20));
 }
 
-void Core::add_shadowLight_from_node(irr::u32 dimen, irr::scene::ILightSceneNode * node)
+CShadowLightSceneNode * Core::addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
+	const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id = -1)
 {
-	irr::video::SLight light = node->getLightData();
+	if(!parent)
+		parent = (irr::scene::CSceneManager*)this->scene_manager;
 	
-	switch(light.Type)
-	{
-	case irr::video::ELT_POINT:
-		for(int i = 0; i < 6; i++)
-		{
-			this->effect_handler->addShadowLight(SShadowLight(dimen, 
-		break;
-	case irr::video::ELT_SPOT:
-		
-		break;
-	default:
-		printf("Tried to create shadow node from invalid light type '%d'\n", light.Type);
-	}
+	CShadowLightSceneNode * node = new CShadowLightSceneNode(this->effect_handler, mapRes, parent, this->scene_manager,
+								id, position, color, near, far);
+	node->drop();
+	
+	return node;
 }
 
 void Core::load_cameras(void)
