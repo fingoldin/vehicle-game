@@ -31,6 +31,28 @@ const char* LIGHT_MODULATE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n
 "	return finalCol * lightCol;\n"
 "}"};
 
+const char* LIGHT_ADD_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+"uniform sampler2D ScreenMapSampler;\n"
+""
+"void main() "
+"{		"
+"	vec4 finalCol = texture2D(ColorMapSampler, gl_TexCoord[0].xy);\n"
+"	vec4 lightCol = texture2D(ScreenMapSampler, gl_TexCoord[0].xy);\n"
+""
+"	gl_FragColor = finalCol + lightCol;\n"
+"}"
+,
+"sampler2D ColorMapSampler : register(s0);\n"
+"sampler2D ScreenMapSampler : register(s1);\n"
+""
+"float4 pixelMain(float2 TexCoords : TEXCOORD0) : COLOR0"
+"{		"
+"	float4 finalCol = tex2D(ColorMapSampler, TexCoords);\n"
+"	float4 lightCol = tex2D(ScreenMapSampler, TexCoords);\n"
+""
+"	return finalCol + lightCol;\n"
+"}"};
+
 
 const char* SHADOW_PASS_1P[ESE_COUNT] = {"void main() "
 "{"

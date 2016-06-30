@@ -103,7 +103,7 @@ vec3 calculatePointLight(pointLight light, vec3 normal)
 {
 	float dist = length(light.position - worldPos);
 	if(dist > light.radius) {
-		return vec3(0.0f, 0.0f, 0.0f);
+		//return vec3(0.0f, 0.0f, 0.0f);
 	}
 	
 	vec3 viewDir = normalize(camPos - worldPos);
@@ -124,7 +124,7 @@ vec3 calculatePointLight(pointLight light, vec3 normal)
 	
     float attenuation = min(1.0f / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * dist * dist), 1.0f);
 	
-	return (attenuation * (ambient + diffuse + specular));
+	return (/*attenuation */ (ambient + diffuse + specular));
 }
 
 vec3 calculateDirLight(dirLight light, vec3 normal)

@@ -2,7 +2,7 @@
 // specific information found far below). For educational comments,
 // please refer to the first example.
 
-#include <irrlicht.h>
+#include <irrlicht/irrlicht.h>
 #include <iostream>
 #include "XEffects.h"
 
@@ -90,16 +90,16 @@ int main()
 	
 	EffectHandler* effect = new EffectHandler(device, driver->getScreenSize());
 
-	IMeshSceneNode* room = smgr->addMeshSceneNode(smgr->getMesh("media/ShadRoom.b3d")->getMesh(0));
+	IMeshSceneNode* room = smgr->addMeshSceneNode(smgr->getMesh("../Bin/media/ShadRoom.b3d")->getMesh(0));
 	room->setScale(vector3df(3,2,3));
 	room->setPosition(vector3df(4.5f,0.5f,4));
-	room->setMaterialTexture(0, driver->getTexture("media/wall.jpg"));
+	room->setMaterialTexture(0, driver->getTexture("../Bin/media/wall.jpg"));
 	room->getMaterial(0).Lighting = false;
 	effect->addShadowToNode(room, filterType);
 
 	effect->setAmbientColor(SColor(0x22222222));
 
-	IAnimatedMesh* dwarfmesh = smgr->getMesh("media/dwarf.x");
+	IAnimatedMesh* dwarfmesh = smgr->getMesh("../Bin/media/dwarf.x");
 
 	for(int g = 0;g < 2;g++)
 	{
@@ -123,9 +123,9 @@ int main()
 
 	core::stringc shaderExt = (driver->getDriverType() == EDT_DIRECT3D9) ? ".hlsl" : ".glsl";
 
-	effect->addPostProcessingEffectFromFile(core::stringc("shaders/BlurHP") + shaderExt);
-	effect->addPostProcessingEffectFromFile(core::stringc("shaders/BlurVP") + shaderExt);
-	effect->addPostProcessingEffectFromFile(core::stringc("shaders/BloomP") + shaderExt);
+	effect->addPostProcessingEffectFromFile(core::stringc("../Bin/shaders/BlurHP") + shaderExt);
+	effect->addPostProcessingEffectFromFile(core::stringc("../Bin/shaders/BlurVP") + shaderExt);
+	effect->addPostProcessingEffectFromFile(core::stringc("../Bin/shaders/BloomP") + shaderExt);
 
 	u32 oldFps = 0;
 	
@@ -133,7 +133,7 @@ int main()
 	f32 farValue = 22.0f;
 	
 	// The FOV is nearly 90 degrees. I set it a little lower to make the seems less visible.
-	f32 fov = 89.99f * DEGTORAD;
+	f32 fov = 90.0f * DEGTORAD;
 
 	// We just initialize positions and targets to (0,0,0), we will set them
 	// later in the draw loop.

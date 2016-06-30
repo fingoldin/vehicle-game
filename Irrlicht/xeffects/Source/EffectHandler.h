@@ -463,6 +463,7 @@ private:
 	irr::s32 DepthWiggle;
 	irr::s32 Shadow[EFT_COUNT];
 	irr::s32 LightModulate;
+	irr::s32 LightAdd;
 	irr::s32 Simple;
 	irr::s32 WhiteWash;
 	irr::s32 WhiteWashTRef;

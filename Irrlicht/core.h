@@ -53,8 +53,8 @@ private:
 	
 	void load_cameras(void);
 	
-	CShadowLightSceneNode *  addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
-			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id = -1);
+	CShadowLightSceneNode * addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
+			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id);
 	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
@@ -93,6 +93,7 @@ void Core::begin(const char * winName)
 	
 	const irr::scene::IGeometryCreator * creator = this->scene_manager->getGeometryCreator();
 	irr::scene::ISceneNode * plane = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(10.0f, 10.0f)));
+	plane->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
 	
 	this->effect_handler->addShadowToNode(plane, EFT_16PCF, ESM_RECEIVE);
 }
@@ -172,7 +173,9 @@ void Core::init_device(const char * winName)
 	
 	this->device->setEventReceiver(this->event_reciever);
 	
-	this->effect_handler = new EffectHandler(this->device, this->driver->getScreenSize(), true, true);
+	this->effect_handler = new EffectHandler(this->device, this->driver->getScreenSize(), false, false, true);
+	
+	this->effect_handler->setClearColour(irr::video::SColor(255, 100, 100, 100));
 	this->effect_handler->setAmbientColor(irr::video::SColor(255, 10, 10, 10));
 }
 
@@ -224,7 +227,8 @@ void Core::load_shaders(void)
 
 void Core::load_lights(void)
 {
-	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(150, 150, 150), irr::video::SColorf(1.0f, 1.0f, 1.0f), 0.1f, 100.0f);
+	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(0, 0, 0), irr::video::SColorf(0.0f, 0.0f, 1.0f), 0.2f, 10.0f, -1);
+	irr::scene::ILightSceneNode * light1 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(5, 6, 0), irr::video::SColorf(1.0f, 0.0f, 0.0f), 0.2f, 10.0f, -1);
 	if(light0) {
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
@@ -232,21 +236,21 @@ void Core::load_lights(void)
 		//light0->getLightData().Direction = irr::core::vector3df(1.0f, -1.0f, 1.0f);
 		light0->setName("light0");
 		
-		/*irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 10, 0), 50, 0.001);
+		irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 8, 0), 5, 0.001);
 		if(lightAnimator) {
 			light0->addAnimator(lightAnimator);
 			lightAnimator->drop();
-		}*/
+		}
 	}
 	
 	//this->scene_manager->setAmbientLight(irr::video::SColor(200, 20, 20, 20));
 }
 
 CShadowLightSceneNode * Core::addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
-	const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id = -1)
+			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id)
 {
 	if(!parent)
-		parent = (irr::scene::CSceneManager*)this->scene_manager;
+		parent = this->scene_manager->getRootSceneNode();
 	
 	CShadowLightSceneNode * node = new CShadowLightSceneNode(this->effect_handler, mapRes, parent, this->scene_manager,
 								id, position, color, near, far);
@@ -262,6 +266,8 @@ void Core::load_cameras(void)
 		this->camera->setFarValue(50000.0f);
 		this->camera->setNearValue(0.5f);
 		this->camera->setFOV(1.0f);
+		this->camera->setPosition(irr::core::vector3df(10.0f, 10.0f, 10.0f));
+		this->camera->setTarget(irr::core::vector3df(0, 0, 0));
 	}
 	
 	this->device->getCursorControl()->setVisible(false);

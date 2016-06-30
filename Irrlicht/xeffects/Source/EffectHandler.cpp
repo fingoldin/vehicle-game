@@ -105,6 +105,10 @@ AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 		LightModulate = gpu->addHighLevelShaderMaterial(
 			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
 			sPP.ppShader(LIGHT_MODULATE_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
+		
+		LightAdd = gpu->addHighLevelShaderMaterial(
+			sPP.ppShader(SCREEN_QUAD_V[shaderExt]).c_str(), "vertexMain", vertexProfile,
+			sPP.ppShader(LIGHT_ADD_P[shaderExt]).c_str(), "pixelMain", pixelProfile, SQCB);
 
 		// Simple present.
 		Simple = gpu->addHighLevelShaderMaterial(
@@ -345,7 +349,9 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 
 			driver->setRenderTarget(ScreenQuad.rt[0], false, false, SColor(0x0));
 			ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
-			ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)Simple;
+			ScreenQuad.getMaterial().setTexture(1, ScreenQuad.rt[0]);
+			
+			ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)LightAdd;
 			
 			ScreenQuad.render(driver);
 		}
@@ -404,7 +410,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 	ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
 	ScreenQuad.getMaterial().setTexture(1, ScreenQuad.rt[0]);
 
-	ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)LightModulate;
+	ScreenQuad.getMaterial().MaterialType = (irr::video::E_MATERIAL_TYPE)LightModulate;
 	ScreenQuad.render(driver);
 
 	// Perform depth pass after rendering, to ensure animations stay up to date.

@@ -26,7 +26,15 @@ public:
 		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, true);
 		this->rNode->setScale(irr::core::vector3df(0.1f, 0.1f, 0.1f));
 		
+		irr::scene::ISceneNodeAnimator * anim = this->smgr->createFlyCircleAnimator(irr::core::vector3df(0, 1, 0), 2, 0.002);
+		if(anim) {
+			//this->rNode->addAnimator(anim);
+			anim->drop();
+		}
+		
 		this->ehandler->addShadowToNode(this->rNode, EFT_16PCF, ESM_BOTH);
+		
+		//this->ehandler->excludeNodeFromLightingCalculations(this->rNode);
 	}
 	
 	~Vehicle(void)
