@@ -13,7 +13,7 @@ public:
 	{
 		this->device->grab();
 		
-		this->mesh = this->smgr->getMesh("media/models/FinalBaseMesh.obj");
+		this->mesh = this->smgr->getMesh("media/models/cs_office.obj");
 		if(this->mesh) {
 			this->rNode = this->smgr->addAnimatedMeshSceneNode(this->mesh);
 		}
@@ -22,9 +22,9 @@ public:
 			return;
 		}
 		
-		this->rNode->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
+		this->rNode->setMaterialType(irr::video::EMT_SOLID);
 		this->rNode->setMaterialFlag(irr::video::EMF_LIGHTING, true);
-		this->rNode->setScale(irr::core::vector3df(0.1f, 0.1f, 0.1f));
+		this->rNode->setScale(irr::core::vector3df(0.01f, 0.01f, 0.01f));
 		
 		irr::scene::ISceneNodeAnimator * anim = this->smgr->createFlyCircleAnimator(irr::core::vector3df(0, 1, 0), 2, 0.002);
 		if(anim) {

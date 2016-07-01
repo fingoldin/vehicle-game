@@ -92,10 +92,10 @@ void Core::begin(const char * winName)
 	this->scene_manager->setShadowColor(irr::video::SColor(150,0,0,0));
 	
 	const irr::scene::IGeometryCreator * creator = this->scene_manager->getGeometryCreator();
-	irr::scene::ISceneNode * plane = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(10.0f, 10.0f)));
-	plane->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
+	//irr::scene::ISceneNode * plane = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(10.0f, 10.0f)));
+	//plane->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
 	
-	this->effect_handler->addShadowToNode(plane, EFT_16PCF, ESM_RECEIVE);
+	//this->effect_handler->addShadowToNode(plane, EFT_16PCF, ESM_RECEIVE);
 }
 
 void Core::end(void)
@@ -128,6 +128,9 @@ void Core::yield(void)
 void Core::update(void)
 {
 	this->device->setWindowCaption(irr::core::stringw(this->win_name + "  FPS: " + irr::core::stringc(this->driver->getFPS())).c_str());
+	
+	irr::core::stringw FPS = irr::core::stringw(this->driver->getFPS());
+	this->gui_env->addStaticText(FPS.c_str(), irr::core::rect<irr::s32>(10, 10, FPS.size() * 20, 30), true);
 	
 	if(this->event_reciever->keyDown(irr::KEY_ESCAPE)) {
 		this->device->closeDevice();
@@ -227,8 +230,7 @@ void Core::load_shaders(void)
 
 void Core::load_lights(void)
 {
-	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(0, 0, 0), irr::video::SColorf(0.0f, 0.0f, 1.0f), 0.2f, 10.0f, -1);
-	irr::scene::ILightSceneNode * light1 = this->addShadowLightSceneNode(0, 2048, irr::core::vector3df(5, 6, 0), irr::video::SColorf(1.0f, 0.0f, 0.0f), 0.2f, 10.0f, -1);
+	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 512, irr::core::vector3df(0, -3, 0), irr::video::SColorf(1.0f, 1.0f, 1.0f), 0.3f, 10.0f, -1);
 	if(light0) {
 		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
 		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
@@ -236,9 +238,9 @@ void Core::load_lights(void)
 		//light0->getLightData().Direction = irr::core::vector3df(1.0f, -1.0f, 1.0f);
 		light0->setName("light0");
 		
-		irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 8, 0), 5, 0.001);
+		irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 1, 0), 5, 0.001);
 		if(lightAnimator) {
-			light0->addAnimator(lightAnimator);
+			//light0->addAnimator(lightAnimator);
 			lightAnimator->drop();
 		}
 	}
@@ -261,7 +263,7 @@ CShadowLightSceneNode * Core::addShadowLightSceneNode(irr::scene::ISceneNode * p
 
 void Core::load_cameras(void)
 {	
-	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100.0f, 0.02f);
+	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100.0f, 0.005f);
 	if(this->camera) {
 		this->camera->setFarValue(50000.0f);
 		this->camera->setNearValue(0.5f);

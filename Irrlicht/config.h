@@ -14,15 +14,15 @@
 
 #define CORE_ANTI_ALIAS  16
 
-#define CORE_WINDOW_WIDTH  900
+#define CORE_WINDOW_WIDTH  1920
 
-#define CORE_WINDOW_HEIGHT  600
+#define CORE_WINDOW_HEIGHT  1080
 
 #define CORE_STENCIL_BUFFER  false
 
-#define CORE_FULLSCREEN  0
+#define CORE_FULLSCREEN  true
 
-#define CORE_VSYNC  0
+#define CORE_VSYNC  true
 
 #define MAX_SHADOW_MAPS  4
 
