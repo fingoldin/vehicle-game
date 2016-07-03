@@ -14,7 +14,7 @@
 #include "corereciever.h"
 #include "coreshadercallback.h"
 
-#include "coreshadowlight.h"
+// #include "coreshadowlight.h"
 
 #include "config.h"
 
@@ -72,6 +72,8 @@ private:
 	
 	irr::scene::ICameraSceneNode * camera;
 	
+	irr::scene::ILightSceneNode * sun;
+	
 	irr::s32 shader;
 	irr::io::path vshader_file;
 	irr::io::path fshader_file;
@@ -88,14 +90,6 @@ void Core::begin(const char * winName)
 	this->load_cameras();
 	
 	this->vehicle = new Vehicle(this->effect_handler, this->device, this->shader);
-	
-	this->scene_manager->setShadowColor(irr::video::SColor(150,0,0,0));
-	
-	const irr::scene::IGeometryCreator * creator = this->scene_manager->getGeometryCreator();
-	//irr::scene::ISceneNode * plane = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(10.0f, 10.0f)));
-	//plane->setMaterialType((irr::video::E_MATERIAL_TYPE)this->shader);
-	
-	//this->effect_handler->addShadowToNode(plane, EFT_16PCF, ESM_RECEIVE);
 }
 
 void Core::end(void)
@@ -230,22 +224,18 @@ void Core::load_shaders(void)
 
 void Core::load_lights(void)
 {
-	irr::scene::ILightSceneNode * light0 = this->addShadowLightSceneNode(0, 512, irr::core::vector3df(0, -3, 0), irr::video::SColorf(1.0f, 1.0f, 1.0f), 0.3f, 10.0f, -1);
-	if(light0) {
-		light0->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
-		light0->getLightData().SpecularColor = irr::video::SColorf(1.0f, 1.0f, 1.0f);
-		//light0->setLightType(irr::video::ELT_DIRECTIONAL);
-		//light0->getLightData().Direction = irr::core::vector3df(1.0f, -1.0f, 1.0f);
-		light0->setName("light0");
+	this->sun = this->scene_manager->addLightSceneNode();
+	if(this->sun) {
+		this->sun->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
+		this->sun->getLightData().SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
 		
-		irr::scene::ISceneNodeAnimator * lightAnimator = this->scene_manager->createFlyCircleAnimator(irr::core::vector3df(0, 1, 0), 5, 0.001);
-		if(lightAnimator) {
-			//light0->addAnimator(lightAnimator);
-			lightAnimator->drop();
-		}
+		this->sun->setLightType(irr::video::ELT_DIRECTIONAL);
+		this->sun->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
+		
+		this->sun->setName("sun");
 	}
 	
-	//this->scene_manager->setAmbientLight(irr::video::SColor(200, 20, 20, 20));
+	this->effect_handler->addShadowLight(SShadowLight(1024, irr::core::vector3df(10.0f, 10.0f, 10.0f)));
 }
 
 CShadowLightSceneNode * Core::addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
