@@ -11,7 +11,7 @@
 
 #include "xeffects/Source/XEffects.h"
 
-#include "corereciever.h"
+#include "corereceiver.h"
 #include "coreshadercallback.h"
 
 // #include "coreshadowlight.h"
@@ -53,12 +53,9 @@ private:
 	
 	void load_cameras(void);
 	
-	CShadowLightSceneNode * addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
-			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id);
-	
 	irr::scene::IAnimatedMesh * getMeshIrrlicht(const irr::io::path& filename);
 	
-	Vehicle * vehicle;
+	Vehicle * curr_vehicle;
 	
 	irr::core::stringc win_name;
 	
@@ -66,13 +63,15 @@ private:
 	irr::video::IVideoDriver * driver;
 	irr::scene::ISceneManager * scene_manager;
 	irr::gui::IGUIEnvironment * gui_env;
-	CoreEventReciever * event_reciever;
+	CoreEventReceiver * event_receiver;
 	
 	EffectHandler * effect_handler;
 	
 	irr::scene::ICameraSceneNode * camera;
 	
 	irr::scene::ILightSceneNode * sun;
+	
+	irr::scene::ISceneNode * ground;
 	
 	irr::s32 shader;
 	irr::io::path vshader_file;
@@ -89,19 +88,30 @@ void Core::begin(const char * winName)
 	
 	this->load_cameras();
 	
-	this->vehicle = new Vehicle(this->effect_handler, this->device, this->shader);
+	this->curr_vehicle = new Vehicle(this->effect_handler, this->device, this->shader);
+	
+	const irr::scene::IGeometryCreator * creator = this->scene_manager->getGeometryCreator();
+	//this->ground = this->scene_manager->addMeshSceneNode(creator->createPlaneMesh(irr::core::dimension2d<irr::f32>(100.0f, 100.0f)));
+	//this->ground->setPosition(irr::core::vector3df(0, -100, 0));
+	
+	//((irr::scene::IMeshSceneNode*)this->ground)->addShadowVolumeSceneNode();
+	
+	//this->effect_handler->addShadowToNode(this->ground, EFT_4PCF, ESM_RECEIVE);
 }
 
 void Core::end(void)
 {
-	if(this->event_reciever)
-		this->event_reciever->drop();
-	if(this->vehicle)
-		this->vehicle->drop();
-	if(this->device)
-		this->device->drop();
 	if(this->effect_handler)
 		delete this->effect_handler;
+	if(this->event_receiver)
+		this->event_receiver->drop();
+	if(this->curr_vehicle)
+		this->curr_vehicle->drop();
+	if(this->device)
+		this->device->drop();
+	
+	// this->driver->removeAllTextures();
+	//printf("got here\n");
 }
 
 bool Core::run(void)
@@ -123,19 +133,37 @@ void Core::update(void)
 {
 	this->device->setWindowCaption(irr::core::stringw(this->win_name + "  FPS: " + irr::core::stringc(this->driver->getFPS())).c_str());
 	
-	irr::core::stringw FPS = irr::core::stringw(this->driver->getFPS());
-	this->gui_env->addStaticText(FPS.c_str(), irr::core::rect<irr::s32>(10, 10, FPS.size() * 20, 30), true);
+	// irr::core::stringw FPS = irr::core::stringw(this->driver->getFPS());
+	// this->gui_env->addStaticText(FPS.c_str(), irr::core::rect<irr::s32>(10, 10, FPS.size() * 20, 30), true);
 	
-	if(this->event_reciever->keyDown(irr::KEY_ESCAPE)) {
-		this->device->closeDevice();
-	}
+	/*irr::core::vector3df vnodepos = this->curr_vehicle->getRNode()->getPosition();
+	
+	if(this->event_receiver->keyDown(irr::KEY_KEY_W))
+		this->curr_vehicle->getRNode()->setPosition(vnodepos + irr::core::vector3df(0.3f, 0.0f, 0.0f));
+	if(this->event_receiver->keyDown(irr::KEY_KEY_S))
+		this->curr_vehicle->getRNode()->setPosition(vnodepos + irr::core::vector3df(-0.3f, 0.0f, 0.0f));
+	if(this->event_receiver->keyDown(irr::KEY_KEY_A))
+		this->curr_vehicle->getRNode()->setPosition(vnodepos + irr::core::vector3df(0.0f, 0.0f, 0.3f));
+	if(this->event_receiver->keyDown(irr::KEY_KEY_D))
+		this->curr_vehicle->getRNode()->setPosition(vnodepos + irr::core::vector3df(0.0f, 0.0f, -0.3f));*/
+	
+	//this->effect_handler->getShadowLight(0).setPosition(-20.0f * (this->sun->getLightData().Direction.normalize()) + irr::core::vector3df(vnodepos.X, -6.0f, vnodepos.Z));
+	//this->effect_handler->getShadowLight(0).setTarget(irr::core::vector3df(vnodepos.X, 0.0f, vnodepos.Z));
+	
+	//this->camera->setPosition(irr::core::vector3df(vnodepos.X + 2.0f, 4.0f, vnodepos.Z + 2.0f));
+	//this->camera->setTarget(irr::core::vector3df(vnodepos.X, 0.0f, vnodepos.Z));
+	
+	//this->effect_handler->getShadowLight(0).getPosition());
+	
+	//this->ground->setPosition(irr::core::vector3df(vnodepos.X, 0.0f, vnodepos.Z));
 }
 
 void Core::render(void)
 {
 	this->driver->beginScene(true, true, irr::video::SColor(255, 5, 5, 250));
 	
-	this->effect_handler->update();
+	//this->effect_handler->update();
+	this->scene_manager->drawAll();
 	
 	this->gui_env->drawAll();
 	
@@ -162,18 +190,22 @@ void Core::init_device(const char * winName)
 	this->device->setWindowCaption(irr::core::stringw(winName).c_str());
 	this->win_name = winName;
 	
-	this->driver = device->getVideoDriver();
-	this->scene_manager = device->getSceneManager();
-	this->gui_env = device->getGUIEnvironment();
+	this->driver = this->device->getVideoDriver();
+	this->scene_manager = this->device->getSceneManager();
+	this->gui_env = this->device->getGUIEnvironment();
 	
-	this->event_reciever = new CoreEventReciever(this->device);
+	this->event_receiver = new CoreEventReceiver(this->device);
 	
-	this->device->setEventReceiver(this->event_reciever);
+	this->device->setEventReceiver(this->event_receiver);
 	
-	this->effect_handler = new EffectHandler(this->device, this->driver->getScreenSize(), false, false, true);
+	this->effect_handler = 0;
 	
-	this->effect_handler->setClearColour(irr::video::SColor(255, 100, 100, 100));
-	this->effect_handler->setAmbientColor(irr::video::SColor(255, 10, 10, 10));
+	//this->effect_handler = new EffectHandler(this->device, this->driver->getScreenSize(), false, false, true);
+	
+	//this->effect_handler->setClearColour(irr::video::SColor(255, 100, 100, 100));
+	//this->effect_handler->setAmbientColor(irr::video::SColor(255, 10, 10, 10));
+	
+	this->scene_manager->setShadowColor(irr::video::SColor(200, 30, 30, 30));
 }
 
 void Core::load_shaders(void)
@@ -226,38 +258,35 @@ void Core::load_lights(void)
 {
 	this->sun = this->scene_manager->addLightSceneNode();
 	if(this->sun) {
-		this->sun->getLightData().AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
-		this->sun->getLightData().SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
-		
+		irr::video::SLight lightData;
 		this->sun->setLightType(irr::video::ELT_DIRECTIONAL);
-		this->sun->getLightData().Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
 		
+		lightData.AmbientColor = irr::video::SColorf(0.4f, 0.4f, 0.4f);
+		lightData.SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
+		lightData.Direction = irr::core::vector3df(-1.0f, -1.0f, -1.0f);
+		lightData.Attenuation = irr::core::vector3df(1.0f, 0.0f, 0.0f);
+		lightData.Radius = 50.0f;
+		lightData.CastShadows = true;
+		
+		this->sun->setLightData(lightData);
 		this->sun->setName("sun");
+		
+		this->sun->setPosition(irr::core::vector3df(10, 10, 10));
 	}
 	
-	this->effect_handler->addShadowLight(SShadowLight(1024, irr::core::vector3df(10.0f, 10.0f, 10.0f)));
-}
-
-CShadowLightSceneNode * Core::addShadowLightSceneNode(irr::scene::ISceneNode * parent, irr::u32 mapRes,
-			const irr::core::vector3df& position, irr::video::SColorf color, irr::f32 near, irr::f32 far, irr::s32 id)
-{
-	if(!parent)
-		parent = this->scene_manager->getRootSceneNode();
-	
-	CShadowLightSceneNode * node = new CShadowLightSceneNode(this->effect_handler, mapRes, parent, this->scene_manager,
-								id, position, color, near, far);
-	node->drop();
-	
-	return node;
+	/*this->effect_handler->addShadowLight(SShadowLight(2048, irr::core::vector3df(0.0f, 5.0f, 0.0f), 
+								irr::core::vector3df(0.0f, 0.0f, 0.0f), 
+								irr::video::SColorf(1.0f, 1.0f, 1.0f), 
+							  10.0f, 23.0f, 20.0f, true));*/
 }
 
 void Core::load_cameras(void)
 {	
-	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100.0f, 0.005f);
+	this->camera = this->scene_manager->addCameraSceneNodeFPS(0, 100, 0.02);
 	if(this->camera) {
-		this->camera->setFarValue(50000.0f);
-		this->camera->setNearValue(0.5f);
-		this->camera->setFOV(1.0f);
+		this->camera->setFarValue(1000.0f);
+		this->camera->setNearValue(0.1f);
+		this->camera->setFOV(70.0f * irr::core::DEGTORAD);
 		this->camera->setPosition(irr::core::vector3df(10.0f, 10.0f, 10.0f));
 		this->camera->setTarget(irr::core::vector3df(0, 0, 0));
 	}

@@ -4,14 +4,18 @@
 #include <irrlicht/irrlicht.h>
 
 
-class CoreEventReciever : public irr::IEventReceiver, public irr::IReferenceCounted
+class CoreEventReceiver : public irr::IEventReceiver, public irr::IReferenceCounted
 {
 public:
 	
 	virtual bool OnEvent(const irr::SEvent& event)
-	{
+	{	
 		if(event.EventType == irr::EET_KEY_INPUT_EVENT) {
 			this->keys[event.KeyInput.Key] = event.KeyInput.PressedDown;
+			
+			if(event.KeyInput.Key == irr::KEY_ESCAPE && event.KeyInput.PressedDown) {
+				this->device->closeDevice();
+			}
 		}
 		else if(event.EventType == irr::EET_LOG_TEXT_EVENT) {
 			printf("%s\n", event.LogEvent.Text);
@@ -25,15 +29,20 @@ public:
 		return this->keys[code];
 	}
 	
-	CoreEventReciever(irr::IrrlichtDevice * device)
+	CoreEventReceiver(irr::IrrlichtDevice * dev) : device(dev)
 	{
-		this->device = device;
+		if(this->device)
+			this->device->grab();
 		
 		for(irr::u32 i = 0; i < irr::KEY_KEY_CODES_COUNT; i++)
 			this->keys[i] = false;
 	}
 	
-	//virtual ~CoreEventReceiver() { }
+	~CoreEventReceiver(void)
+	{
+		if(this->device)
+			this->device->drop();
+	}
 	
 private:
 	
